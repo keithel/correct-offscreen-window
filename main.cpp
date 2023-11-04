@@ -11,6 +11,8 @@
 #include <QCloseEvent>
 #include <vector>
 
+using std::vector;
+
 class ButtonBox : public QGroupBox
 {
     Q_OBJECT

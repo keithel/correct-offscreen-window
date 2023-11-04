@@ -1,8 +1,13 @@
 #include "mainwindow.h"
+#include <QLabel>
+#include <QGridLayout>
+#include <QTimer>
 #include <QApplication>
 #include <QScreen>
-#include <QWindow>
 #include <QCloseEvent>
+#include <QMoveEvent>
+#include <QResizeEvent>
+#include <QWindow>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -38,6 +43,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     mCenterWidget->setLayout(mGridLayout);
     setCentralWidget(mCenterWidget);
+
+    metadataDisplay = new MetadataDisplayDialog(this);
+    metadataDisplay->open();
 }
 
 MainWindow::~MainWindow() {}
@@ -54,6 +62,22 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     qApp->quit();
 }
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    metadataDisplay->update();
+}
+
+void MainWindow::moveEvent(QMoveEvent *event)
+{
+    metadataDisplay->delayedUpdate();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    metadataDisplay->delayedUpdate();
+}
+
 
 // Given a geometry that is partially or completely outside the bounds of the available virtual
 // geometry, will return a rect that has the geometry such that the title bar of the window
@@ -89,4 +113,58 @@ QRect MainWindow::correctOutOfBoundsGeometry(const QPoint &winPos, const QSize &
         correctedG.moveTop(availVirtalGeom.bottom() - sOffscreenWidthToShow);
 
     return correctedG;
+}
+
+MetadataDisplayDialog::MetadataDisplayDialog(QMainWindow *parent)
+    : QDialog(parent)
+    , mwParent(parent)
+{
+    posLabel = new QLabel(this);
+    posValLabel = new QLabel(this);
+    frameGeomLabel = new QLabel(this);
+    frameGeomValLabel = new QLabel(this);
+    frameMarginsLabel = new QLabel(this);
+    frameMarginsValLabel = new QLabel(this);
+    geomLabel = new QLabel(this);
+    geomValLabel = new QLabel(this);
+
+    posLabel->setText("Position");
+    frameGeomLabel->setText("Frame Geometry");
+    frameMarginsLabel->setText("Frame Margins");
+    geomLabel->setText("Geometry");
+
+    QGridLayout *layout = new QGridLayout(this);
+    layout->addWidget(posLabel, 0, 0);
+    layout->addWidget(posValLabel, 0, 1);
+    layout->addWidget(frameGeomLabel, 1, 0);
+    layout->addWidget(frameGeomValLabel, 1, 1);
+    layout->addWidget(frameMarginsLabel, 2, 0);
+    layout->addWidget(frameMarginsValLabel, 2, 1);
+    layout->addWidget(geomLabel, 3, 0);
+    layout->addWidget(geomValLabel, 3, 1);
+    setLayout(layout);
+
+    updateMetadataDisplayTimer = new QTimer(this);
+    updateMetadataDisplayTimer->setInterval(100);
+    updateMetadataDisplayTimer->setSingleShot(true);
+    connect(updateMetadataDisplayTimer, &QTimer::timeout, this, &MetadataDisplayDialog::update);
+}
+
+void MetadataDisplayDialog::delayedUpdate()
+{
+    updateMetadataDisplayTimer->start();
+}
+
+void MetadataDisplayDialog::update()
+{
+    QWindow *mwWindow = mwParent->windowHandle();
+    QPoint pos = mwParent->pos();
+    QRect fGeom = mwWindow->frameGeometry();
+    QMargins fMargins = mwWindow->frameMargins();
+    QRect geom = mwWindow->geometry();
+
+    posValLabel->setText(QString("(%1, %2)").arg(pos.x()).arg(pos.y()));
+    frameGeomValLabel->setText(QString("(%1, %2 %3x%4)").arg(fGeom.x()).arg(fGeom.y()).arg(fGeom.width()).arg(fGeom.height()));
+    frameMarginsValLabel->setText(QString("(%1, %2, %3, %4)").arg(fMargins.left()).arg(fMargins.top()).arg(fMargins.right()).arg(fMargins.bottom()));
+    geomValLabel->setText(QString("(%1, %2 %3x%4)").arg(geom.x()).arg(geom.y()).arg(geom.width()).arg(geom.height()));
 }
