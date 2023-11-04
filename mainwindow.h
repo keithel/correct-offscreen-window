@@ -8,6 +8,8 @@
 
 using std::vector;
 
+class QCloseEvent;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -18,8 +20,11 @@ public:
 
     void correctOutOfBounds();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private:
-    QRect correctOutOfBoundsGeometry(const QRect&);
+    QRect correctOutOfBoundsGeometry(const QPoint &winPos, const QSize &winSize);
 
     QWidget *mCenterWidget;
     QGridLayout *mGridLayout;

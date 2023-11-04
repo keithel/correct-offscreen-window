@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QScreen>
+#include <QWindow>
+#include <QCloseEvent>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -36,8 +38,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     mCenterWidget->setLayout(mGridLayout);
     setCentralWidget(mCenterWidget);
-
-    // Ok - add some logic to move the window out of bounds.
 }
 
 MainWindow::~MainWindow() {}
@@ -45,38 +45,48 @@ MainWindow::~MainWindow() {}
 void MainWindow::correctOutOfBounds()
 {
     qDebug() << "Correcting geometry";
-    setGeometry(correctOutOfBoundsGeometry(geometry()));
+    QRect correctedGeom = correctOutOfBoundsGeometry(pos(), size());
+    resize(correctedGeom.size());
+    move(correctedGeom.topLeft());
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    qApp->quit();
 }
 
 // Given a geometry that is partially or completely outside the bounds of the available virtual
 // geometry, will return a rect that has the geometry such that the title bar of the window
 // whose geometry this is representing will be visible on the displays that are currently active
 // on the user's system.
-QRect MainWindow::correctOutOfBoundsGeometry(const QRect &g)
+// frameGeometry() cannot be used because the size of the window will not be correct when setting
+// the corrected size to the window, as all size setting methods only expect the geometry without
+// the frame.
+//
+// winPos - the position of the top left corner of the window frame (QWidget::pos())
+// winSize - the size of the window, not including the frame (QWidget::size())
+QRect MainWindow::correctOutOfBoundsGeometry(const QPoint &winPos, const QSize &winSize)
 {
-    static const int sOffscreenWidthToShow = 20; // device pixels
-    auto offscreenWidthToShow = [](const QScreen* screen)-> int {
-        return sOffscreenWidthToShow * screen->devicePixelRatio();
-    };
-    const QScreen* primaryScreen = qApp->primaryScreen();
+    static const int sOffscreenWidthToShow = 80; // device pixels
 
     // Get the available virtual geometry -- this is the union of all of the available
     // geometries of the QScreens that are part of this virtual desktop. Available means the
     // screen areas excluding window manager reserved areas like task bars and system menus.
     // NOTE: there is only ever one virtual desktop, so it doesn't matter which screen we get
     // the virtual geometry from.
-    QRect availVirtalGeom = primaryScreen->availableVirtualGeometry();
+    QRect availVirtalGeom = qApp->primaryScreen()->availableVirtualGeometry();
 
+    QRect g(winPos, winSize);
     QRect correctedG(g);
 
     if (g.right() < availVirtalGeom.left())
-        correctedG.setRight(availVirtalGeom.left() + sOffscreenWidthToShow);
+        correctedG.moveRight(availVirtalGeom.left() + sOffscreenWidthToShow);
     if (g.left() > availVirtalGeom.right())
-        correctedG.setLeft(availVirtalGeom.right() - sOffscreenWidthToShow);
+        correctedG.moveLeft(availVirtalGeom.right() - sOffscreenWidthToShow);
     if (g.bottom() < availVirtalGeom.top())
-        correctedG.setBottom(availVirtalGeom.top() + g.height());
+        correctedG.moveTop(availVirtalGeom.top());
     if (g.top() > availVirtalGeom.bottom())
-        correctedG.setTop(availVirtalGeom.bottom() - sOffscreenWidthToShow);
+        correctedG.moveTop(availVirtalGeom.bottom() - sOffscreenWidthToShow);
 
     return correctedG;
 }
