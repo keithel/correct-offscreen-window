@@ -44,11 +44,14 @@ MainWindow::MainWindow(QWidget *parent)
     mCenterWidget->setLayout(mGridLayout);
     setCentralWidget(mCenterWidget);
 
-    metadataDisplay = new MetadataDisplayDialog(this);
-    metadataDisplay->open();
+    metadataDisplay = new MetadataDisplayWindow(this);
+    metadataDisplay->show();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow()
+{
+    delete metadataDisplay;
+}
 
 void MainWindow::correctOutOfBounds()
 {
@@ -115,8 +118,8 @@ QRect MainWindow::correctOutOfBoundsGeometry(const QPoint &winPos, const QSize &
     return correctedG;
 }
 
-MetadataDisplayDialog::MetadataDisplayDialog(QMainWindow *parent)
-    : QDialog(parent)
+MetadataDisplayWindow::MetadataDisplayWindow(QMainWindow *parent)
+    : QWidget()
     , mwParent(parent)
 {
     posLabel = new QLabel(this);
@@ -147,15 +150,15 @@ MetadataDisplayDialog::MetadataDisplayDialog(QMainWindow *parent)
     updateMetadataDisplayTimer = new QTimer(this);
     updateMetadataDisplayTimer->setInterval(100);
     updateMetadataDisplayTimer->setSingleShot(true);
-    connect(updateMetadataDisplayTimer, &QTimer::timeout, this, &MetadataDisplayDialog::update);
+    connect(updateMetadataDisplayTimer, &QTimer::timeout, this, &MetadataDisplayWindow::update);
 }
 
-void MetadataDisplayDialog::delayedUpdate()
+void MetadataDisplayWindow::delayedUpdate()
 {
     updateMetadataDisplayTimer->start();
 }
 
-void MetadataDisplayDialog::update()
+void MetadataDisplayWindow::update()
 {
     QWindow *mwWindow = mwParent->windowHandle();
     QPoint pos = mwParent->pos();

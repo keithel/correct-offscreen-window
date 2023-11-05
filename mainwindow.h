@@ -15,12 +15,12 @@ class QGridLayout;
 class QLabel;
 class QTimer;
 
-class MetadataDisplayDialog : public QDialog
+class MetadataDisplayWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    MetadataDisplayDialog(QMainWindow *);
+    MetadataDisplayWindow(QMainWindow *);
 
     void delayedUpdate();
 
@@ -62,7 +62,7 @@ private:
 
     QWidget *mCenterWidget = nullptr;
     QGridLayout *mGridLayout = nullptr;
-    MetadataDisplayDialog *metadataDisplay = nullptr;
+    MetadataDisplayWindow *metadataDisplay = nullptr;
 
     vector<vector<QLabel *>> mGridLabels;
 };
