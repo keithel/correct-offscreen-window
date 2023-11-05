@@ -130,11 +130,14 @@ MetadataDisplayWindow::MetadataDisplayWindow(QMainWindow *parent)
     frameMarginsValLabel = new QLabel(this);
     geomLabel = new QLabel(this);
     geomValLabel = new QLabel(this);
+    availVirtGeomLabel = new QLabel(this);
+    availVirtGeomValLabel = new QLabel(this);
 
     posLabel->setText("Position");
     frameGeomLabel->setText("Frame Geometry");
     frameMarginsLabel->setText("Frame Margins");
     geomLabel->setText("Geometry");
+    availVirtGeomLabel->setText("Available Virtual Geometry");
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(posLabel, 0, 0);
@@ -145,6 +148,8 @@ MetadataDisplayWindow::MetadataDisplayWindow(QMainWindow *parent)
     layout->addWidget(frameMarginsValLabel, 2, 1);
     layout->addWidget(geomLabel, 3, 0);
     layout->addWidget(geomValLabel, 3, 1);
+    layout->addWidget(availVirtGeomLabel, 4, 0);
+    layout->addWidget(availVirtGeomValLabel, 4, 1);
     setLayout(layout);
 
     updateMetadataDisplayTimer = new QTimer(this);
@@ -165,9 +170,11 @@ void MetadataDisplayWindow::update()
     QRect fGeom = mwWindow->frameGeometry();
     QMargins fMargins = mwWindow->frameMargins();
     QRect geom = mwWindow->geometry();
+    QRect avGeom = qApp->primaryScreen()->availableVirtualGeometry();
 
     posValLabel->setText(QString("(%1, %2)").arg(pos.x()).arg(pos.y()));
     frameGeomValLabel->setText(QString("(%1, %2 %3x%4)").arg(fGeom.x()).arg(fGeom.y()).arg(fGeom.width()).arg(fGeom.height()));
     frameMarginsValLabel->setText(QString("(%1, %2, %3, %4)").arg(fMargins.left()).arg(fMargins.top()).arg(fMargins.right()).arg(fMargins.bottom()));
     geomValLabel->setText(QString("(%1, %2 %3x%4)").arg(geom.x()).arg(geom.y()).arg(geom.width()).arg(geom.height()));
+    availVirtGeomValLabel->setText(QString("(%1, %2 %3x%4)").arg(avGeom.x()).arg(avGeom.y()).arg(avGeom.width()).arg(avGeom.height()));
 }

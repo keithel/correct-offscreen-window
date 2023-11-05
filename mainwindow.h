@@ -37,8 +37,9 @@ private:
     QLabel *frameMarginsValLabel = nullptr;
     QLabel *geomLabel = nullptr;
     QLabel *geomValLabel = nullptr;
+    QLabel *availVirtGeomLabel = nullptr;
+    QLabel *availVirtGeomValLabel = nullptr;
     QTimer *updateMetadataDisplayTimer = nullptr;
-
 };
 
 class MainWindow : public QMainWindow
