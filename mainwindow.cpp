@@ -56,9 +56,13 @@ MainWindow::~MainWindow()
 void MainWindow::correctOutOfBounds()
 {
     qDebug() << "Correcting geometry";
-    QRect correctedGeom = correctOutOfBoundsGeometry(pos(), size());
-    resize(correctedGeom.size());
+    QWindow *win = windowHandle();
+    QRect correctedGeom = correctOutOfBoundsGeometry(win->frameGeometry());
+
     move(correctedGeom.topLeft());
+    // Resize to the corrected window size, subtracting out the titlebar and any other margins.
+    // as the resize method expects a geometry that does not include these.
+    resize((correctedGeom - win->frameMargins()).size());
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -90,9 +94,8 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 // the corrected size to the window, as all size setting methods only expect the geometry without
 // the frame.
 //
-// winPos - the position of the top left corner of the window frame (QWidget::pos())
-// winSize - the size of the window, not including the frame (QWidget::size())
-QRect MainWindow::correctOutOfBoundsGeometry(const QPoint &winPos, const QSize &winSize)
+// winGeom - the geometry of the window, including the titlebar (`QWindow::frameGeometry()`)
+QRect MainWindow::correctOutOfBoundsGeometry(const QRect &winGeom)
 {
     static const int sOffscreenWidthToShow = 80; // device pixels
 
@@ -103,16 +106,15 @@ QRect MainWindow::correctOutOfBoundsGeometry(const QPoint &winPos, const QSize &
     // the virtual geometry from.
     QRect availVirtalGeom = qApp->primaryScreen()->availableVirtualGeometry();
 
-    QRect g(winPos, winSize);
-    QRect correctedG(g);
+    QRect correctedG(winGeom);
 
-    if (g.right() < availVirtalGeom.left())
+    if (winGeom.right() < availVirtalGeom.left())
         correctedG.moveRight(availVirtalGeom.left() + sOffscreenWidthToShow);
-    if (g.left() > availVirtalGeom.right())
+    if (winGeom.left() > availVirtalGeom.right())
         correctedG.moveLeft(availVirtalGeom.right() - sOffscreenWidthToShow);
-    if (g.bottom() < availVirtalGeom.top())
+    if (winGeom.bottom() < availVirtalGeom.top())
         correctedG.moveTop(availVirtalGeom.top());
-    if (g.top() > availVirtalGeom.bottom())
+    if (winGeom.top() > availVirtalGeom.bottom())
         correctedG.moveTop(availVirtalGeom.bottom() - sOffscreenWidthToShow);
 
     return correctedG;

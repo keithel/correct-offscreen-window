@@ -59,7 +59,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    QRect correctOutOfBoundsGeometry(const QPoint &winPos, const QSize &winSize);
+    QRect correctOutOfBoundsGeometry(const QRect &winGeom);
 
     QWidget *mCenterWidget = nullptr;
     QGridLayout *mGridLayout = nullptr;
